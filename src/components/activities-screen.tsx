@@ -1,0 +1,14 @@
+"use client";
+
+import { ArrowLeft, CalendarDays, MapPin, Search, Users } from "lucide-react";
+import { useState } from "react";
+import type { Candidate } from "@/lib/domain";
+
+export function ActivitiesScreen({ activities, loading, onCall }: { activities: Candidate[]; loading: boolean; onCall: () => void }) {
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<Candidate | null>(null);
+  const needle = query.trim().toLocaleLowerCase("en-SG");
+  const filtered = needle ? activities.filter((item) => `${item.name} ${item.activities.join(" ")}`.toLocaleLowerCase("en-SG").includes(needle)) : activities;
+  if (selected) return <main className="screen activity-detail"><header className="topbar call-topbar"><button className="icon-button" onClick={() => setSelected(null)} aria-label="Go back"><ArrowLeft /></button><span className="chat-context">Activity</span><span className="icon-spacer" /></header><div className="activity-hero"><div className="activity-icon"><CalendarDays size={34} aria-hidden="true" /></div><p className="eyebrow">Community activity</p><h1>{selected.name}</h1><p>{selected.activities.join(" · ")}</p></div><section className="activity-details"><p><MapPin size={22} aria-hidden="true" /><span><strong>{selected.venue ?? selected.neighborhood}</strong><small>{selected.neighborhood}</small></span></p><p><Users size={22} aria-hidden="true" /><span><strong>{selected.members?.join(", ") ?? "Community members"}</strong><small>{selected.languages.join(", ")}</small></span></p><button className="primary-button" onClick={onCall}>Find people for this activity</button></section></main>;
+  return <main className="screen"><header className="topbar"><div><p className="eyebrow">Discover together</p><h1 className="activity-title">Activities</h1></div></header><div className="activity-intro"><p>Find something enjoyable to do with your community.</p></div><div className="kaki-search"><Search size={20} aria-hidden="true" /><input type="search" aria-label="Search activities" placeholder="Search activities" value={query} onChange={(event) => setQuery(event.target.value)} /></div><section className="activity-list" aria-live="polite" aria-busy={loading}>{loading ? <div className="empty-card">Finding activities…</div> : filtered.length === 0 ? <div className="empty-card">No activities match “{query}”.</div> : filtered.map((activity) => <button type="button" className="activity-row" key={activity.id} onClick={() => setSelected(activity)}><span className="activity-list-icon"><CalendarDays size={24} aria-hidden="true" /></span><span className="activity-info"><strong>{activity.name}</strong><small>{activity.activities.join(" · ")}</small><small><MapPin size={14} aria-hidden="true" />{activity.neighborhood}</small></span></button>)}</section><button className="secondary-button activity-call" onClick={onCall}>Ask KopiKaki to find an activity</button></main>;
+}
