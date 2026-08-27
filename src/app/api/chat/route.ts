@@ -2,7 +2,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
 import { routeError } from "@/lib/api-error";
-import { chatId, parseChatText } from "@/lib/chat";
+import { canChatWithKaki, chatId, parseChatText } from "@/lib/chat";
 import { adminDb, requireUser } from "@/lib/firebase-admin";
 
 export const runtime = "nodejs";
@@ -34,6 +34,10 @@ export async function POST(request: Request) {
     if (!account.exists) {
       return NextResponse.json({ error: "This kaki isn't on KopiKaki yet." }, { status: 400 });
     }
+    const relationship = await adminDb.collection("users").doc(userId).collection("kakis").doc(kakiId).get();
+    if (!relationship.exists || !canChatWithKaki(relationship.data())) {
+      return NextResponse.json({ error: "You can only message a kaki you have added." }, { status: 403 });
+    }
 
     const chatRef = adminDb.collection("chats").doc(chatId(userId, kakiId));
     await chatRef.set(
@@ -44,6 +48,7 @@ export async function POST(request: Request) {
       senderId: userId,
       text,
       createdAt: FieldValue.serverTimestamp(),
+      readAt: null,
     });
     return NextResponse.json({ sent: true });
   } catch (error) {

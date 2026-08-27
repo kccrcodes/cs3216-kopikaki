@@ -13,3 +13,8 @@ export function parseChatText(value: unknown): string {
   if (text.length > MAX_MESSAGE_LENGTH) throw new Error("Message is too long.");
   return text;
 }
+
+export function canChatWithKaki(value: unknown): boolean {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value)
+    && (value as { hasAccount?: unknown }).hasAccount === true);
+}

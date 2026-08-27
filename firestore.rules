@@ -46,6 +46,7 @@ service cloud.firestore {
 
       match /messages/{messageId} {
         allow read: if request.auth != null
+          && exists(/databases/$(database)/documents/chats/$(chatId))
           && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
         allow write: if false;
       }
