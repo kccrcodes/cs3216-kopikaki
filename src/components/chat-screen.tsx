@@ -8,7 +8,12 @@ import { chatId } from "@/lib/chat";
 import type { Candidate } from "@/lib/domain";
 import { apiPost, auth, db } from "@/lib/firebase-client";
 
-type Message = { id: string; senderId: string; text: string; createdAt?: Timestamp };
+type Message = { id: string; senderId: string; text: string; createdAt?: Timestamp | null };
+
+function messageTime(timestamp: Timestamp | null | undefined): string {
+  if (!timestamp) return "Sending…";
+  return timestamp.toDate().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
 
 export function ChatScreen({ kaki, onBack, onCall }: { kaki: Candidate; onBack: () => void; onCall: () => void }) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -35,7 +40,7 @@ export function ChatScreen({ kaki, onBack, onCall }: { kaki: Candidate; onBack: 
           id: doc.id,
           senderId: doc.data().senderId as string,
           text: doc.data().text as string,
-          createdAt: doc.data().createdAt as Timestamp | undefined,
+          createdAt: doc.data().createdAt as Timestamp | null | undefined,
         })),
       );
       setLoading(false);
@@ -70,7 +75,7 @@ export function ChatScreen({ kaki, onBack, onCall }: { kaki: Candidate; onBack: 
         <button className="icon-button" onClick={onBack} aria-label="Go back">
           <ArrowLeft />
         </button>
-        <h1 className="chat-title">{kaki.name}</h1>
+        <span className="chat-context">Chat</span>
         <span className="icon-spacer" />
       </header>
       {!kaki.hasAccount ? (
@@ -82,12 +87,21 @@ export function ChatScreen({ kaki, onBack, onCall }: { kaki: Candidate; onBack: 
         </div>
       ) : (
         <>
+          <section className="chat-contact-banner" aria-label={`Chatting with ${kaki.name}`}>
+            <div className="chat-contact-avatar" aria-hidden="true">{kaki.name.charAt(0)}</div>
+            <div>
+              <p className="eyebrow">Your kaki</p>
+              <h2>{kaki.name}</h2>
+              <p>{kaki.neighborhood} · {kaki.languages.join(", ")}</p>
+            </div>
+          </section>
           <section className="chat-log" aria-live="polite">
             {loading && <p className="chat-empty">Loading chat…</p>}
             {!loading && messages.length === 0 && <p className="chat-empty">Say hello to {kaki.name}!</p>}
             {messages.map((message) => (
               <p key={message.id} className={message.senderId === myId ? "chat-bubble mine" : "chat-bubble"}>
-                {message.text}
+                <span>{message.text}</span>
+                <time dateTime={message.createdAt?.toDate().toISOString()}>{messageTime(message.createdAt)}</time>
               </p>
             ))}
             <div ref={bottomRef} />
