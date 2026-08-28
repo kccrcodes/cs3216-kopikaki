@@ -24,6 +24,7 @@ import { apiPost, auth, connectLocalFirebase, db } from "@/lib/firebase-client";
 import { resolveSingaporeDate } from "@/lib/memory";
 import { nextMeetup, parseFreeWindow, type FreeWindow } from "@/lib/schedule";
 import { AccountScreen } from "./account-screen";
+import { ActivitiesScreen } from "./activities-screen";
 import { Brand } from "./brand";
 import { BottomNav, type Tab } from "./bottom-nav";
 import { CallScreen } from "./call-screen";
@@ -56,6 +57,7 @@ export function HeroApp() {
   // writes into participantNames, so the detail screen can tell which one is you.
   const [profileName, setProfileName] = useState("");
   const [kakis, setKakis] = useState<Candidate[]>([]);
+  const [activities, setActivities] = useState<Candidate[]>([]);
   const [chatWith, setChatWith] = useState<Candidate | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -127,6 +129,17 @@ export function HeroApp() {
                 setKakis(snapshot.docs.map((doc) => parseCandidate(doc.id, doc.data())));
               } catch {
                 setError("Kaki data is incomplete. Please reseed the demo data.");
+              }
+            },
+            (cause) => setError(cause.message),
+          ),
+          onSnapshot(
+            collection(db, "activities"),
+            (snapshot) => {
+              try {
+                setActivities(snapshot.docs.map((item) => parseCandidate(item.id, item.data())));
+              } catch {
+                setError("Activity data is incomplete. Please reseed the demo data.");
               }
             },
             (cause) => setError(cause.message),
@@ -302,6 +315,8 @@ export function HeroApp() {
           onAdd={openCall}
           onOpenMeetup={openMeetup}
         />
+      ) : tab === "activities" ? (
+        <ActivitiesScreen activities={activities} loading={loading} onCall={openCall} />
       ) : tab === "kakis" ? (
         <KakisScreen kakis={kakis} loading={loading} onCall={openCall} onSelect={setChatWith} />
       ) : (
