@@ -1,6 +1,6 @@
 <p align="center">
   <!-- TODO: replace with the real logo -->
-  <img src="public/logo.png" width="160" alt="KopiKaki logo">
+  <img src="public/kopikaki-logo.png" width="160" alt="KopiKaki logo">
 </p>
 
 <h1 align="center">KopiKaki</h1>
